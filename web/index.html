@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0
+        }
+
+        #all{
+            margin: 30px;
+            width: 1450px;
+            height: 700px;
+            position: fixed;
+            background: url(image/bgWord.jpg) no-repeat 0 0;
+            background-size: 1450px 700px;
+        }
+
+        #box {
+            width: 600px;
+            height: 300px;
+            position: relative;
+            float: right;
+            margin: 150px 100px;
+            padding: 5px;
+        }
+
+        #content {
+            width: 600px;
+            height: 300px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        #content img {
+            width: 600px;
+            height: 300px;
+            vertical-align: top
+        }
+
+        ul {
+            width: 88888px;
+            position: absolute;
+            list-style: none;
+            left: 0;
+            top: 0;
+        }
+
+        #content li {
+            float: left;
+
+        }
+
+        ol {
+            position: absolute;
+            height: 7px;
+            right: 270px;
+            bottom: 5px;
+            text-align: center;
+            padding: 5px;
+        }
+
+        ol li {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 7px;
+            line-height: 7px;
+            background-color: #fff;
+            margin: 5px;
+            cursor: pointer;
+
+        }
+
+        ol .current {
+            background-color: rgb(105, 6, 255);
+        }
+
+    </style>
+
+    <title>欢迎来到 时间管理master !</title>
+</head>
+
+<body>
+<div id="all">
+    <div id="box">
+        <a href="login.jsp">
+            <div id="content">
+                <ul id="image">
+                    <!-- 放需要滚动的图片、链接等 -->
+                    <li><img src="./image/slideA.png" alt="a"></li>
+                    <li><img src="./image/slideB.png" alt="b"></li>
+                    <li><img src="./image/slideC.png" alt="c"></li>
+                </ul>
+                <ol class="choose">
+                </ol>
+            </div>
+        </a>
+    </div>
+</div>
+
+<script>
+    //根据ID选择相应的dom元素
+    let outer= document.getElementById("box")
+    let content = document.getElementById("content")
+    let image = document.getElementById("image")
+
+    //得到图片和按钮列表
+    let img = image.children
+    let btn = content.children[1]
+
+    //得到图片宽度
+    let imgWidth = content.offsetWidth
+
+    //当前按钮个数为0
+    let choose = 0;
+
+    //根据li个数，创建小按钮
+    for (let i = 0; i < img.length; i++) {
+        let li = document.createElement("li");//得到li标签的dom元素
+        btn.appendChild(li);//给每个li元素都创建按钮
+        li.contentText = (i + 1);//按钮1 2 3 4 5（从1开始）
+        li.setAttribute("index", i);//创建优先级顺序
+
+        //按钮的onclick事件
+        li.onclick = function () {
+            for (let j = 0; j < btn.children.length; j++) {
+                btn.children[j].removeAttribute("class");//去掉按钮的class属性，去掉此时的轮播效果
+            }
+            this.className = "current";//按下按钮的current
+            choose = this.getAttribute("index");//得到当前图片的index属性来移动夏官营的宽度
+            animate(image, -choose * imgWidth);//css3向左移动一个图片的宽度
+        }
+
+    }
+    //给当前按钮加上class属性
+    btn.children[0].className = "current";
+    image.appendChild(image.children[0].cloneNode(true));//指定当前节点精确拷贝
+
+    //图片的轮播
+
+    //当鼠标移入图片显示区域时 显示左右切换按钮
+    outer.onmouseover = function () {
+
+    };
+    //当鼠标移出显示区域时 左右按钮消失
+    outer.onmouseout = function () {
+
+    };
+
+    //滚动函数
+    function consequent() {
+        //为了最后一张图片和第一张图片的流畅衔接效果，另做情况打算，首先是图片
+        if (choose == img.length - 1) {//最后一张
+            choose = 0;//返回第一张
+            image.style.left = 0 + "px"//css属性
+        }
+        choose++//继续下一张循环
+        animate(image, -choose * imgWidth)//否则接着循环
+        //然后是按钮效果
+        if (choose == img.length - 1) {
+            btn.children[btn.children.length - 1].className = ""//移去最后一张图片的class属性，因为之后不能再用choose加1来完成图片转换
+            btn.children[0].className = "current"//给第一张图片加上class属性
+        } else//正常情况滚动
+            for (let i = 0; i < btn.children.length; i++) {
+                btn.children[i].removeAttribute("class");//移去当前图片的class属性
+            }
+        btn.children[choose].className = "current";//给下一张图片加上class属性
+    }
+
+    //图片轮播时间3s
+    let timeId = setInterval(consequent, 3000);//图片轮播定时器：每三秒调用一次轮播函数
+
+    //按钮对应点击事件
+    function animate(element, target) {//接收参数：当前图片和目标页面
+        clearInterval(element.timeId);//清除定时器
+        element.timeId = setInterval(function () {//重写定时器，并一次调用
+            let current = element.offsetLeft;//得到当前页面的左偏移量
+            let step = 10;//整个图片宽度
+            step = current < target ? step : -step;//目标页面在前面：step
+            current += step;
+            if (Math.abs(current - target) > Math.abs(step)) {//当前页面在目标页面后面
+                element.style.left = current + "px";//当前页面
+            } else {
+                clearInterval(element.timeId);
+                element.style.left = target + "px";//跳转到指定页面
+            }
+        }, 10);
+    }
+
+</script>
+
+</body>
+
+</html>
